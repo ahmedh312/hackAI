@@ -1,0 +1,6 @@
+#things git needs to ignore for security
+.env
+__pycache__/
+*.pyc
+/data/raw/*
+/output/*

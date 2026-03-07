@@ -1,0 +1,7 @@
+#required dependencies for the project
+pandas #for data manipulation and analysis.
+requests #for making HTTP requests to the web and APIs.
+beautifulsoup4 #cleans the HTML and finds the text you care about.
+python-dotenv #loads your API keys from a .env file, so you don't have to hardcode them in your code.
+rich #displays that final result on your screen in color-coded, readable logs.
+openai  # or whichever LLM library you use
