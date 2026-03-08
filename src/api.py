@@ -4,6 +4,7 @@ import json
 import os
 from labeler import label_review
 from supabaseClient import *
+from collections import Counter
 
 app = Flask(__name__)
 CORS(app, methods=["GET", "POST", "DELETE", "OPTIONS"])
@@ -96,7 +97,7 @@ def post_review():
     response = insert_review(data)
     return jsonify(response)
 
-# Small chhange
+# Small chhange 
 @app.route("/reviews", methods=["POST"])
 def post_reviews():
     try:
@@ -113,6 +114,22 @@ def post_reviews():
     except Exception as e:
         print(f"Error in post_reviews: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/topics")
+def get_topics():
+    counts = Counter()
+    try:
+        with open(RESULTS_FILE, 'r') as f:
+            for line in f:
+                if not line.strip(): continue
+                r = json.loads(line)
+                topic = (r.get("topic") or "").strip().lower()
+                if topic and topic != "unknown":
+                    counts[topic] += 1
+    except FileNotFoundError:
+        return jsonify([])
+    data = [{"topic": k, "count": v} for k, v in counts.most_common(15)]
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
