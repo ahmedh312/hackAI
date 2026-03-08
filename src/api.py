@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
 import os
+from collections import Counter
 
 app = Flask(__name__)
 CORS(app, methods=["GET", "POST", "DELETE", "OPTIONS"])
@@ -66,6 +67,22 @@ def get_summary():
         "avg_confidence": round(confidence_sum / total, 2) if total else 0,
         "avg_star_error": round(star_error_sum / total, 2) if total else 0,
     })
+
+@app.route("/topics")
+def get_topics():
+    counts = Counter()
+    try:
+        with open(RESULTS_FILE, 'r') as f:
+            for line in f:
+                if not line.strip(): continue
+                r = json.loads(line)
+                topic = (r.get("topic") or "").strip().lower()
+                if topic and topic != "unknown":
+                    counts[topic] += 1
+    except FileNotFoundError:
+        return jsonify([])
+    data = [{"topic": k, "count": v} for k, v in counts.most_common(15)]
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)

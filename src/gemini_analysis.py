@@ -15,7 +15,7 @@ client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 MAX_REVIEWS = 100_000
 CONCURRENCY = 50
-BATCH_SIZE  = 20
+BATCH_SIZE  = 15
 
 def rating_to_label(r: float) -> str:
     if r >= 4.0: return "positive"
@@ -45,14 +45,17 @@ async def analyze_batch(semaphore, rows: list, indices: list) -> list:
 
 Classify each review as positive (4-5 stars), negative (1-2 stars), or neutral (3 stars).
 Return a confidence score between 0.6 and 1.0.
+Also return the single most relevant topic from this list:
+charging, durability, weight, storage, broken, price, graphics, speed, heating,
+bad performance, size, signal, ease of use, portability, noise, late delivery, sound quality, battery life, value
 
 Reviews:
 {reviews_text}
 
 Return ONLY a JSON array with exactly {len(rows)} objects, no other text:
-[{{"predicted_label": "positive", "predicted_stars": 5, "confidence": 0.92}}, ...]"""
+[{{"predicted_label": "positive", "predicted_stars": 5, "confidence": 0.92, "topic": "ease of use"}}, ...]"""
 
-        fallback = [{"predicted_label": "neutral", "predicted_stars": 3, "confidence": 0.65}] * len(rows)
+        fallback = [{"predicted_label": "neutral", "predicted_stars": 3, "confidence": 0.65, "topic": "unknown"}] * len(rows)
 
         for attempt in range(3):
             try:
@@ -81,6 +84,8 @@ Return ONLY a JSON array with exactly {len(rows)} objects, no other text:
                 for p in preds:
                     if not p.get("confidence") or p["confidence"] == 0.0:
                         p["confidence"] = 0.85 if p.get("predicted_label") in ["positive", "negative"] else 0.65
+                    if not p.get("topic"):
+                        p["topic"] = "unknown"
 
                 results = []
                 for i, (row, pred, idx) in enumerate(zip(rows, preds, indices)):
@@ -101,6 +106,7 @@ Return ONLY a JSON array with exactly {len(rows)} objects, no other text:
                         "star_error":       round(abs(pred.get("predicted_stars", 3) - actual_rating), 2),
                         "baseline_label":   baseline_label,
                         "baseline_correct": baseline_label == actual_label,
+                        "topic":            pred.get("topic", "unknown"),
                         "text_snippet":     text[:60]
                     })
                 return results
@@ -133,6 +139,7 @@ Return ONLY a JSON array with exactly {len(rows)} objects, no other text:
                 "star_error": round(abs(3 - actual_rating), 2),
                 "baseline_label": baseline_label,
                 "baseline_correct": baseline_label == actual_label,
+                "topic": "unknown",
                 "text_snippet": text[:60]
             })
         return results

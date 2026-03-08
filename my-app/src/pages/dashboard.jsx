@@ -45,7 +45,7 @@ function Stars({ n, size = "0.72rem" }) {
   return <span style={{ color: C.gold, fontSize: size, letterSpacing: 1 }}>{"★".repeat(count)}{"☆".repeat(5 - count)}</span>;
 }
 
-function Nav({ running, total, onBack }) {
+function Nav({ running, total, onBack, onFlagged, flagCount }) {
   return (
     <nav style={{ padding: "1.5rem 3rem", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 100, background: `${C.bg}F5`, backdropFilter: "blur(8px)", boxShadow: "0 1px 0 #E0D5C4" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
@@ -60,6 +60,14 @@ function Nav({ running, total, onBack }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
         {total > 0 && <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: C.textDim, letterSpacing: "0.1em" }}>{total.toLocaleString()} REVIEWS PROCESSED</span>}
+        {flagCount > 0 && (
+          <div onClick={onFlagged} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.red, border: `1px solid ${C.red}44`, background: `${C.red}10`, padding: "0.3rem 0.8rem", cursor: "pointer", letterSpacing: "0.1em", transition: "all 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.background = `${C.red}20`; e.currentTarget.style.borderColor = C.red; }}
+            onMouseLeave={e => { e.currentTarget.style.background = `${C.red}10`; e.currentTarget.style.borderColor = `${C.red}44`; }}
+          >
+            ⚑ {flagCount} FLAGGED
+          </div>
+        )}
         <Badge active={running}>{running ? "● PIPELINE RUNNING" : total > 0 ? "◼ PIPELINE STOPPED" : "○ PIPELINE IDLE"}</Badge>
       </div>
     </nav>
@@ -256,6 +264,31 @@ function BaselineComparison({ results }) {
   );
 }
 
+function TopicsChart({ topics }) {
+  if (!topics || topics.length === 0) return null;
+  const max = topics[0]?.count || 1;
+  const colors = [C.red, C.goldLight, C.neutral, C.green, C.goldDim];
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1.25rem" }}>
+        Top Complaint Topics
+        <span style={{ marginLeft: "0.75rem", color: C.goldDim }}>· from labeled dataset</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+        {topics.map((t, i) => (
+          <div key={t.topic} style={{ display: "grid", gridTemplateColumns: "160px 1fr 50px", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.08em", textAlign: "right", textTransform: "capitalize" }}>{t.topic}</div>
+            <div style={{ height: 6, background: C.bg3, borderRadius: 3 }}>
+              <div style={{ height: "100%", width: `${(t.count / max) * 100}%`, background: colors[i % colors.length], borderRadius: 3, transition: "width 0.6s ease" }} />
+            </div>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1rem", color: C.textDim }}>{t.count.toLocaleString()}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function LiveFeed({ items }) {
   const ref = useRef(null);
   useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [items]);
@@ -301,12 +334,15 @@ function LiveFeed({ items }) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [results, setResults]       = useState([]);
-  const [running, setRunning]       = useState(false);
+  const [results, setResults]   = useState([]);
+  const [running, setRunning]   = useState(false);
   const [accHistory, setAccHistory] = useState([]);
+  const [topics, setTopics]     = useState([]);
 
-  const intervalRef    = useRef(null);
-  const prevLengthRef  = useRef(0);
+  const intervalRef   = useRef(null);
+  const prevLengthRef = useRef(0);
+
+  // Topics now fetched live in the polling loop below
 
   const total   = results.length;
   const correct = results.filter(r => r.correct).length;
@@ -331,6 +367,12 @@ export default function Dashboard() {
       try {
         const res  = await fetch("http://localhost:8000/results");
         const data = await res.json();
+
+        // Also refresh topics live
+        fetch("http://localhost:8000/topics")
+          .then(r => r.json())
+          .then(setTopics)
+          .catch(() => {});
 
         const normalized = data.map(r => ({
           ...r,
@@ -397,7 +439,7 @@ export default function Dashboard() {
 
       <div style={{ background: C.bg, color: C.text, fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
         <TopBar />
-        <Nav running={running} total={total} onBack={() => navigate("/")} />
+        <Nav running={running} total={total} onBack={() => navigate("/")} onFlagged={() => navigate("/flagged")} flagCount={results.filter(r => r.predicted_label?.toLowerCase() === "negative" && r.confidence >= 0.85).length} />
 
         <main style={{ padding: "2.5rem 3rem", maxWidth: 1300, margin: "0 auto" }}>
 
@@ -471,6 +513,12 @@ export default function Dashboard() {
           {total > 0 && (
             <div style={{ marginBottom: "1.5rem" }}>
               <BaselineComparison results={results} />
+            </div>
+          )}
+
+          {topics.length > 0 && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <TopicsChart topics={topics} />
             </div>
           )}
 

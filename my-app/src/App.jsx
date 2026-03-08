@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/dashboard";
 import WriteUp from "./pages/WriteUp";
+import FlaggedReviews from "./pages/FlaggedReviews";
+import ProductReviews from "./pages/ProductReviews";
 
 
 /* ── palette (light mode) ─────────────────────────────────── */
@@ -211,7 +213,7 @@ function Hero() {
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: 820 }}>
         <div style={{ marginBottom: "1.5rem" }}>
-          <Badge>GEMINI 2.0 Flash Lite · LIVE</Badge>
+          <Badge>GEMINI 3.1 Flash Lite · LIVE</Badge>
         </div>
 
         <h1 style={{
@@ -253,6 +255,14 @@ function Hero() {
               background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`,
               color: "#FFF", padding: "0.7rem 1.8rem", borderRadius: 2, cursor: "pointer"
             }}>Try the Demo →</div>
+          <div
+            onClick={() => navigate("/products")}
+            style={{
+              fontFamily: "'DM Mono', monospace", fontSize: "0.75rem",
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              color: C.gold, padding: "0.7rem 1.8rem", borderRadius: 2,
+              border: `1px solid ${C.goldDim}`, cursor: "pointer"
+            }}>Product Reviews</div>
           <div
             onClick={() => navigate("/writeup")}
             style={{
@@ -534,6 +544,8 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/writeup" element={<WriteUp />} />
+      <Route path="/flagged" element={<FlaggedReviews />} />
+      <Route path="/products" element={<ProductReviews />} />
     </Routes>
   );
 }
