@@ -1,0 +1,17 @@
+# Post new review to database
+POST http://127.0.0.1:8000/review
+Content-Type: application/json
+
+{
+  "asin": "B09TEST123",
+  "rating": "3",
+  "title": "average headphones",
+  "text": "Test 1",
+  "datestamp": "2024-10-18 20:42:56.000",
+  "advise": null
+}
+###
+
+# Get all the reviews in the database
+GET http://127.0.0.1:8000/reviews
+Content-Type: application/json
