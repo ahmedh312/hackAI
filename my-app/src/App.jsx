@@ -44,8 +44,8 @@ const FEATURES = [
   },
   {
     icon: "◫",
-    title: "Category Intelligence",
-    desc: "Sector-aware models fine-tuned per Amazon category. Electronics sentiment differs fundamentally from Clothing or Food.",
+    title: "Data Transformation",
+    desc: "Sector-aware models fine-tuned each Amazon review. Transforms raw text into structured signals for seamless integration into your data stack and workflows.",
   },
   {
     icon: "◧",
