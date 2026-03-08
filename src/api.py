@@ -90,10 +90,10 @@ def get_review():
 @app.route("/review", methods=["POST"])
 def post_review():
     data = request.get_json()
-    print(data)
     text = f"Title - {data["title"]} Text - {data["text"]}"
     advise = label_review(text)
     data['advise'] = advise
+    print(data)
     response = insert_review(data)
     return jsonify(response)
 
