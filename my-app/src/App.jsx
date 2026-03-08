@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/dashboard";
+import WriteUp from "./pages/WriteUp";
 
 
 /* ── palette (light mode) ─────────────────────────────────── */
@@ -22,8 +23,8 @@ const REVIEWS = [
 ];
 
 const STATS = [
-  { value: "2.4M+", label: "Reviews Analyzed" },
-  { value: "89.2%", label: "Prediction Accuracy" },
+  { value: "50K+", label: "Reviews Analyzed" },
+  { value: "80%+", label: "Prediction Accuracy" },
   { value: "0.74", label: "Avg Confidence" },
   { value: "142ms", label: "Avg Inference Time" },
 ];
@@ -32,7 +33,7 @@ const FEATURES = [
   {
     icon: "◈",
     title: "Sentiment Classification",
-    desc: "Deep NLP model trained on 2.4M verified Amazon reviews. Classifies positive, negative, and mixed signals with sub-150ms latency.",
+    desc: "Deep NLP model trained on 50K verified Amazon reviews. Classifies positive, negative, and mixed signals with sub-150ms latency.",
   },
   {
     icon: "◉",
@@ -70,22 +71,6 @@ function useTypewriter(text, speed = 38, startDelay = 300) {
     return () => clearTimeout(delay);
   }, [text]);
   return { displayed, done };
-}
-
-function useCountUp(target, duration = 1400, start = false) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTs = null;
-    const step = (ts) => {
-      if (!startTs) startTs = ts;
-      const p = Math.min((ts - startTs) / duration, 1);
-      setVal(p * target);
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return val;
 }
 
 /* ── micro components ────────────────────────────────────── */
@@ -196,8 +181,8 @@ function Nav() {
 
 /* ── hero ────────────────────────────────────────────────── */
 function Hero() {
-  const navigate = useNavigate(); 
-  const tagline = "Predict what a review says before it's written.";
+  const navigate = useNavigate();
+  const tagline = "The reviews are talking. We translate.";
   const { displayed, done } = useTypewriter(tagline, 36, 400);
 
   return (
@@ -226,7 +211,7 @@ function Hero() {
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: 820 }}>
         <div style={{ marginBottom: "1.5rem" }}>
-          <Badge>LATEST AI MODEL BLAH BLAH BLAH · LIVE</Badge>
+          <Badge>GEMINI 2.0 Flash Lite · LIVE</Badge>
         </div>
 
         <h1 style={{
@@ -268,12 +253,14 @@ function Hero() {
               background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`,
               color: "#FFF", padding: "0.7rem 1.8rem", borderRadius: 2, cursor: "pointer"
             }}>Try the Demo →</div>
-          <div style={{
-            fontFamily: "'DM Mono', monospace", fontSize: "0.75rem",
-            letterSpacing: "0.12em", textTransform: "uppercase",
-            color: C.gold, padding: "0.7rem 1.8rem", borderRadius: 2,
-            border: `1px solid ${C.goldDim}`, cursor: "pointer"
-          }}>Read the Docs</div>
+          <div
+            onClick={() => navigate("/writeup")}
+            style={{
+              fontFamily: "'DM Mono', monospace", fontSize: "0.75rem",
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              color: C.gold, padding: "0.7rem 1.8rem", borderRadius: 2,
+              border: `1px solid ${C.goldDim}`, cursor: "pointer"
+            }}>Write Up</div>
         </div>
       </div>
     </section>
@@ -297,7 +284,6 @@ function DemoWidget() {
     setResult(null);
     await new Promise(r => setTimeout(r, 900 + Math.random() * 600));
 
-    // deterministic mock based on text keywords
     const lower = text.toLowerCase();
     const posWords = ["fantastic", "great", "love", "perfect", "excellent", "amazing", "best", "awesome"];
     const negWords = ["terrible", "broke", "bad", "worst", "awful", "disappointed", "cheap", "useless"];
@@ -318,125 +304,37 @@ function DemoWidget() {
   };
 
   return (
-    <section style={{
-      padding: "4rem 3rem",
-      borderBottom: `1px solid ${C.border}`,
-      background: C.bg2
-    }}>
+    <section style={{ padding: "4rem 3rem", borderBottom: `1px solid ${C.border}`, background: C.bg2 }}>
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
-        <div style={{
-          fontFamily: "'DM Mono', monospace", fontSize: "0.62rem",
-          color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase",
-          marginBottom: "0.5rem"
-        }}>Interactive Demo</div>
-        <h2 style={{
-          fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.4rem",
-          letterSpacing: "0.06em", color: C.text, marginBottom: "2rem"
-        }}>Paste a Review. Get a Signal.</h2>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Interactive Demo</div>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.4rem", letterSpacing: "0.06em", color: C.text, marginBottom: "2rem" }}>Paste a Review. Get a Signal.</h2>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
-          {/* input */}
-          <div style={{
-            background: C.surface, border: `1px solid ${C.border}`,
-            padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem"
-          }}>
-            <div style={{
-              fontFamily: "'DM Mono', monospace", fontSize: "0.62rem",
-              color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase"
-            }}>Review Text Input</div>
-
-            <textarea
-              value={text}
-              onChange={e => setText(e.target.value)}
-              rows={6}
-              style={{
-                background: C.bg3, border: `1px solid ${C.border}`,
-                color: C.text, fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem",
-                lineHeight: 1.7, padding: "0.85rem", borderRadius: 2, resize: "vertical",
-                outline: "none"
-              }}
-            />
-
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Review Text Input</div>
+            <textarea value={text} onChange={e => setText(e.target.value)} rows={6} style={{ background: C.bg3, border: `1px solid ${C.border}`, color: C.text, fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem", lineHeight: 1.7, padding: "0.85rem", borderRadius: 2, resize: "vertical", outline: "none" }} />
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
               {SAMPLE_TEXTS.map((s, i) => (
-                <div key={i} onClick={() => setText(s)} style={{
-                  fontFamily: "'DM Mono', monospace", fontSize: "0.58rem",
-                  color: C.textDim, border: `1px solid ${C.border}`,
-                  padding: "0.2rem 0.5rem", borderRadius: 1, cursor: "pointer",
-                  letterSpacing: "0.1em",
-                  transition: "color 0.2s, border-color 0.2s"
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = C.gold; e.currentTarget.style.borderColor = C.goldDim; }}
-                onMouseLeave={e => { e.currentTarget.style.color = C.textDim; e.currentTarget.style.borderColor = C.border; }}
+                <div key={i} onClick={() => setText(s)} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: C.textDim, border: `1px solid ${C.border}`, padding: "0.2rem 0.5rem", borderRadius: 1, cursor: "pointer", letterSpacing: "0.1em", transition: "color 0.2s, border-color 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = C.gold; e.currentTarget.style.borderColor = C.goldDim; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = C.textDim; e.currentTarget.style.borderColor = C.border; }}
                 >SAMPLE {i + 1}</div>
               ))}
             </div>
-
-            <div
-              onClick={analyze}
-              style={{
-                fontFamily: "'DM Mono', monospace", fontSize: "0.72rem",
-                letterSpacing: "0.14em", textTransform: "uppercase",
-                background: loading ? C.bg3 : `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`,
-                color: loading ? C.textDim : "#FFF",
-                padding: "0.65rem", textAlign: "center",
-                borderRadius: 2, cursor: loading ? "default" : "pointer",
-                transition: "background 0.3s"
-              }}
-            >{loading ? "ANALYZING ···" : "ANALYZE REVIEW →"}</div>
+            <div onClick={analyze} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.14em", textTransform: "uppercase", background: loading ? C.bg3 : `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`, color: loading ? C.textDim : "#FFF", padding: "0.65rem", textAlign: "center", borderRadius: 2, cursor: loading ? "default" : "pointer", transition: "background 0.3s" }}>{loading ? "ANALYZING ···" : "ANALYZE REVIEW →"}</div>
           </div>
 
-          {/* output */}
-          <div style={{
-            background: C.surface, border: `1px solid ${C.border}`, padding: "1.5rem",
-            display: "flex", flexDirection: "column", gap: "1.25rem",
-            position: "relative", overflow: "hidden"
-          }}>
-            {result && (
-              <div style={{
-                position: "absolute", top: 0, left: 0, right: 0, height: 3,
-                background: result.sentiment === "POSITIVE"
-                  ? `linear-gradient(90deg, ${C.green}, transparent)`
-                  : result.sentiment === "NEGATIVE"
-                  ? `linear-gradient(90deg, ${C.red}, transparent)`
-                  : `linear-gradient(90deg, ${C.neutral}, transparent)`
-              }} />
-            )}
-
-            <div style={{
-              fontFamily: "'DM Mono', monospace", fontSize: "0.62rem",
-              color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase"
-            }}>Prediction Output</div>
-
-            {!result && !loading && (
-              <div style={{
-                flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                color: C.textDim, fontFamily: "'DM Mono', monospace", fontSize: "0.72rem",
-                letterSpacing: "0.12em", textTransform: "uppercase",
-                border: `1px dashed ${C.border}`, borderRadius: 2, minHeight: 160
-              }}>Awaiting Input</div>
-            )}
-
-            {loading && (
-              <div style={{
-                flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                color: C.gold, fontFamily: "'DM Mono', monospace", fontSize: "0.72rem",
-                letterSpacing: "0.12em", animation: "pulse 1s ease-in-out infinite", minHeight: 160
-              }}>PROCESSING···</div>
-            )}
-
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem", position: "relative", overflow: "hidden" }}>
+            {result && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: result.sentiment === "POSITIVE" ? `linear-gradient(90deg, ${C.green}, transparent)` : result.sentiment === "NEGATIVE" ? `linear-gradient(90deg, ${C.red}, transparent)` : `linear-gradient(90deg, ${C.neutral}, transparent)` }} />}
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Prediction Output</div>
+            {!result && !loading && <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.textDim, fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.12em", textTransform: "uppercase", border: `1px dashed ${C.border}`, borderRadius: 2, minHeight: 160 }}>Awaiting Input</div>}
+            {loading && <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.gold, fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.12em", animation: "pulse 1s ease-in-out infinite", minHeight: 160 }}>PROCESSING···</div>}
             {result && !loading && (
               <>
                 <div>
-                  <div style={{
-                    fontFamily: "'Bebas Neue', sans-serif", fontSize: "3.8rem",
-                    letterSpacing: "0.05em", lineHeight: 1,
-                    color: result.sentiment === "POSITIVE" ? C.green : result.sentiment === "NEGATIVE" ? C.red : C.neutral,
-                    marginBottom: "0.5rem"
-                  }}>{result.sentiment}</div>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "3.8rem", letterSpacing: "0.05em", lineHeight: 1, color: result.sentiment === "POSITIVE" ? C.green : result.sentiment === "NEGATIVE" ? C.red : C.neutral, marginBottom: "0.5rem" }}>{result.sentiment}</div>
                   <SentimentPill sentiment={result.sentiment} />
                 </div>
-
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div style={{ background: C.bg3, padding: "0.85rem", borderRadius: 2 }}>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: C.textDim, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.4rem" }}>Predicted Stars</div>
@@ -471,25 +369,11 @@ function StatsBar() {
   }, []);
 
   return (
-    <section ref={ref} style={{
-      padding: "3rem",
-      borderBottom: `1px solid ${C.border}`,
-      display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px",
-      background: C.border
-    }}>
+    <section ref={ref} style={{ padding: "3rem", borderBottom: `1px solid ${C.border}`, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: C.border }}>
       {STATS.map((s, i) => (
-        <div key={s.label} style={{
-          background: C.surface, padding: "1.75rem 2rem",
-          animation: visible ? `fadeUp 0.5s ease ${i * 0.1}s both` : "none"
-        }}>
-          <div style={{
-            fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.6rem",
-            color: C.goldLight, letterSpacing: "0.04em", lineHeight: 1, marginBottom: "0.3rem"
-          }}>{s.value}</div>
-          <div style={{
-            fontFamily: "'DM Mono', monospace", fontSize: "0.6rem",
-            color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase"
-          }}>{s.label}</div>
+        <div key={s.label} style={{ background: C.surface, padding: "1.75rem 2rem", animation: visible ? `fadeUp 0.5s ease ${i * 0.1}s both` : "none" }}>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.6rem", color: C.goldLight, letterSpacing: "0.04em", lineHeight: 1, marginBottom: "0.3rem" }}>{s.value}</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase" }}>{s.label}</div>
         </div>
       ))}
     </section>
@@ -502,35 +386,17 @@ function Features() {
     <section style={{ padding: "5rem 3rem", borderBottom: `1px solid ${C.border}` }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ marginBottom: "3rem" }}>
-          <div style={{
-            fontFamily: "'DM Mono', monospace", fontSize: "0.62rem",
-            color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.5rem"
-          }}>Core Capabilities</div>
-          <h2 style={{
-            fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.8rem",
-            letterSpacing: "0.06em", color: C.text
-          }}>Intelligence at Every Layer</h2>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Core Capabilities</div>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.8rem", letterSpacing: "0.06em", color: C.text }}>Intelligence at Every Layer</h2>
         </div>
-
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: C.border }}>
           {FEATURES.map((f, i) => (
-            <div key={f.title}
-              style={{
-                background: C.surface, padding: "2.25rem",
-                transition: "background 0.2s", cursor: "default",
-                animation: `fadeUp 0.5s ease ${0.1 + i * 0.1}s both`
-              }}
+            <div key={f.title} style={{ background: C.surface, padding: "2.25rem", transition: "background 0.2s", cursor: "default", animation: `fadeUp 0.5s ease ${0.1 + i * 0.1}s both` }}
               onMouseEnter={e => e.currentTarget.style.background = C.bg2}
               onMouseLeave={e => e.currentTarget.style.background = C.surface}
             >
-              <div style={{
-                fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.8rem",
-                color: C.gold, marginBottom: "1rem"
-              }}>{f.icon}</div>
-              <div style={{
-                fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem",
-                letterSpacing: "0.08em", color: C.goldLight, marginBottom: "0.75rem"
-              }}>{f.title}</div>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.8rem", color: C.gold, marginBottom: "1rem" }}>{f.icon}</div>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem", letterSpacing: "0.08em", color: C.goldLight, marginBottom: "0.75rem" }}>{f.title}</div>
               <p style={{ fontSize: "0.82rem", color: C.textDim, lineHeight: 1.8 }}>{f.desc}</p>
             </div>
           ))}
@@ -544,13 +410,9 @@ function Features() {
 function ReplayFeed() {
   const [rows, setRows] = useState(REVIEWS.slice(0, 3));
   const [idx, setIdx] = useState(3);
-
   useEffect(() => {
     const id = setInterval(() => {
-      setRows(prev => {
-        const next = [...prev.slice(-4), REVIEWS[idx % REVIEWS.length]];
-        return next;
-      });
+      setRows(prev => [...prev.slice(-4), REVIEWS[idx % REVIEWS.length]]);
       setIdx(i => i + 1);
     }, 2800);
     return () => clearInterval(id);
@@ -559,49 +421,29 @@ function ReplayFeed() {
   return (
     <section style={{ padding: "5rem 3rem", borderBottom: `1px solid ${C.border}` }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{
-          display: "flex", alignItems: "flex-end",
-          justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem"
-        }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
           <div>
-            <div style={{
-              fontFamily: "'DM Mono', monospace", fontSize: "0.62rem",
-              color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.5rem"
-            }}>Live Signal Feed</div>
-            <h2 style={{
-              fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.4rem",
-              letterSpacing: "0.06em", color: C.text
-            }}>Review Signals, In Real Time</h2>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Live Signal Feed</div>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.4rem", letterSpacing: "0.06em", color: C.text }}>Review Signals, In Real Time</h2>
           </div>
           <Badge>● STREAMING PREDICTIONS</Badge>
         </div>
-
         <div style={{ background: C.surface, border: `1px solid ${C.border}` }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr>
-                {["ASIN", "Category", "Review Excerpt", "Sentiment", "Stars", "Confidence"].map(h => (
-                  <th key={h} style={{
-                    fontFamily: "'DM Mono', monospace", fontSize: "0.58rem",
-                    color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase",
-                    textAlign: "left", padding: "0.9rem 1rem",
-                    borderBottom: `1px solid ${C.border}`
-                  }}>{h}</th>
-                ))}
-              </tr>
+              <tr>{["ASIN", "Category", "Review Excerpt", "Sentiment", "Stars", "Confidence"].map(h => (
+                <th key={h} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: C.textDim, letterSpacing: "0.15em", textTransform: "uppercase", textAlign: "left", padding: "0.9rem 1rem", borderBottom: `1px solid ${C.border}` }}>{h}</th>
+              ))}</tr>
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={i}
-                  style={{ borderBottom: `1px solid ${C.border}44`, transition: "background 0.2s" }}
+                <tr key={i} style={{ borderBottom: `1px solid ${C.border}44`, transition: "background 0.2s" }}
                   onMouseEnter={e => e.currentTarget.style.background = C.bg3}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                 >
                   <td style={{ padding: "0.85rem 1rem", fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.gold }}>{r.asin}</td>
                   <td style={{ padding: "0.85rem 1rem", fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim }}>{r.category}</td>
-                  <td style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", color: C.text, maxWidth: 280 }}>
-                    <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.excerpt}</div>
-                  </td>
+                  <td style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", color: C.text, maxWidth: 280 }}><div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.excerpt}</div></td>
                   <td style={{ padding: "0.85rem 1rem" }}><SentimentPill sentiment={r.sentiment} /></td>
                   <td style={{ padding: "0.85rem 1rem" }}><Stars n={r.stars} /></td>
                   <td style={{ padding: "0.85rem 1rem", fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: C.gold }}>{r.confidence}</td>
@@ -618,52 +460,18 @@ function ReplayFeed() {
 /* ── CTA ─────────────────────────────────────────────────── */
 function CTA() {
   return (
-    <section style={{
-      padding: "6rem 3rem", textAlign: "center",
-      position: "relative", overflow: "hidden"
-    }}>
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: 700, height: 300, borderRadius: "50%",
-        background: `radial-gradient(ellipse, ${C.goldLight}25 0%, transparent 70%)`,
-        pointerEvents: "none"
-      }} />
+    <section style={{ padding: "6rem 3rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 700, height: 300, borderRadius: "50%", background: `radial-gradient(ellipse, ${C.goldLight}25 0%, transparent 70%)`, pointerEvents: "none" }} />
       <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{
-          fontFamily: "'DM Mono', monospace", fontSize: "0.62rem",
-          color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem"
-        }}>Get Started Today</div>
-        <h2 style={{
-          fontFamily: "'Bebas Neue', sans-serif",
-          fontSize: "clamp(2.5rem, 5vw, 4.5rem)", letterSpacing: "0.05em",
-          color: C.text, marginBottom: "1.2rem", lineHeight: 1
-        }}>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem" }}>Get Started Today</div>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(2.5rem, 5vw, 4.5rem)", letterSpacing: "0.05em", color: C.text, marginBottom: "1.2rem", lineHeight: 1 }}>
           Know Your Reviews<br />
-          <span style={{
-            background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`,
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"
-          }}>Before They Go Live.</span>
+          <span style={{ background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Before They Go Live.</span>
         </h2>
-        <p style={{
-          fontSize: "0.88rem", color: C.textDim, lineHeight: 1.8,
-          maxWidth: 500, margin: "0 auto 2.5rem"
-        }}>
-          Join 1,200+ Amazon sellers and brand managers using VERIDEX to proactively manage customer sentiment.
-        </p>
+        <p style={{ fontSize: "0.88rem", color: C.textDim, lineHeight: 1.8, maxWidth: 500, margin: "0 auto 2.5rem" }}>Join 1,200+ Amazon sellers and brand managers using REVIEW SENSE to proactively manage customer sentiment.</p>
         <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-          <div style={{
-            fontFamily: "'DM Mono', monospace", fontSize: "0.75rem",
-            letterSpacing: "0.14em", textTransform: "uppercase",
-            background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`,
-            color: "#FFF", padding: "0.8rem 2.2rem", borderRadius: 2, cursor: "pointer"
-          }}>Start Free Trial →</div>
-          <div style={{
-            fontFamily: "'DM Mono', monospace", fontSize: "0.75rem",
-            letterSpacing: "0.14em", textTransform: "uppercase",
-            color: C.gold, padding: "0.8rem 2.2rem", borderRadius: 2,
-            border: `1px solid ${C.goldDim}`, cursor: "pointer"
-          }}>View API Docs</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.14em", textTransform: "uppercase", background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`, color: "#FFF", padding: "0.8rem 2.2rem", borderRadius: 2, cursor: "pointer" }}>Start Free Trial →</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.14em", textTransform: "uppercase", color: C.gold, padding: "0.8rem 2.2rem", borderRadius: 2, border: `1px solid ${C.goldDim}`, cursor: "pointer" }}>View API Docs</div>
         </div>
       </div>
     </section>
@@ -673,30 +481,14 @@ function CTA() {
 /* ── footer ──────────────────────────────────────────────── */
 function Footer() {
   return (
-    <footer style={{
-      padding: "2rem 3rem",
-      borderTop: `1px solid ${C.border}`,
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      flexWrap: "wrap", gap: "1rem"
-    }}>
-      <div style={{
-        fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem",
-        letterSpacing: "0.15em",
-        background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold}, ${C.goldDim})`,
-        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"
-      }}>VERIDEX</div>
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: C.textDim, letterSpacing: "0.1em" }}>
-        © 2024 VERIDEX INTELLIGENCE · ALL RIGHTS RESERVED
-      </div>
+    <footer style={{ padding: "2rem 3rem", borderTop: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem", letterSpacing: "0.15em", background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold}, ${C.goldDim})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>REVIEW SENSE</div>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: C.textDim, letterSpacing: "0.1em" }}>© 2026 REVIEW SENSE INTELLIGENCE · ALL RIGHTS RESERVED</div>
       <div style={{ display: "flex", gap: "1.5rem" }}>
         {["Privacy", "Terms", "Status"].map(l => (
-          <span key={l} style={{
-            fontFamily: "'DM Mono', monospace", fontSize: "0.6rem",
-            color: C.textDim, letterSpacing: "0.1em", cursor: "pointer",
-            textTransform: "uppercase", transition: "color 0.2s"
-          }}
-          onMouseEnter={e => e.target.style.color = C.gold}
-          onMouseLeave={e => e.target.style.color = C.textDim}
+          <span key={l} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: C.textDim, letterSpacing: "0.1em", cursor: "pointer", textTransform: "uppercase", transition: "color 0.2s" }}
+            onMouseEnter={e => e.target.style.color = C.gold}
+            onMouseLeave={e => e.target.style.color = C.textDim}
           >{l}</span>
         ))}
       </div>
@@ -741,6 +533,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/writeup" element={<WriteUp />} />
     </Routes>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, ReferenceLine } from "recharts";
 
 /* ── palette — mirrors the landing page exactly ─────────── */
@@ -44,12 +45,18 @@ function Stars({ n, size = "0.72rem" }) {
   return <span style={{ color: C.gold, fontSize: size, letterSpacing: 1 }}>{"★".repeat(count)}{"☆".repeat(5 - count)}</span>;
 }
 
-function Nav({ running, total }) {
+function Nav({ running, total, onBack }) {
   return (
     <nav style={{ padding: "1.5rem 3rem", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 100, background: `${C.bg}F5`, backdropFilter: "blur(8px)", boxShadow: "0 1px 0 #E0D5C4" }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "0.7rem" }}>
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.9rem", letterSpacing: "0.15em", background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold}, ${C.goldDim})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>REVIEW SENSE</span>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase" }}>Pipeline Dashboard</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+        <div onClick={onBack} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: C.textDim, letterSpacing: "0.12em", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s" }}
+          onMouseEnter={e => e.currentTarget.style.color = C.gold}
+          onMouseLeave={e => e.currentTarget.style.color = C.textDim}
+        >← HOME</div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "0.7rem" }}>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.9rem", letterSpacing: "0.15em", background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold}, ${C.goldDim})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>REVIEW SENSE</span>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: C.textDim, letterSpacing: "0.2em", textTransform: "uppercase" }}>Pipeline Dashboard</span>
+        </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
         {total > 0 && <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: C.textDim, letterSpacing: "0.1em" }}>{total.toLocaleString()} REVIEWS PROCESSED</span>}
@@ -293,6 +300,7 @@ function LiveFeed({ items }) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [results, setResults]       = useState([]);
   const [running, setRunning]       = useState(false);
   const [accHistory, setAccHistory] = useState([]);
@@ -389,7 +397,7 @@ export default function Dashboard() {
 
       <div style={{ background: C.bg, color: C.text, fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
         <TopBar />
-        <Nav running={running} total={total} />
+        <Nav running={running} total={total} onBack={() => navigate("/")} />
 
         <main style={{ padding: "2.5rem 3rem", maxWidth: 1300, margin: "0 auto" }}>
 
