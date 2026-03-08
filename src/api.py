@@ -6,7 +6,7 @@ from labeler import label_review
 from supabaseClient import *
 
 app = Flask(__name__)
-CORS(app, methods=["GET", "POST", "DELETE", "OPTIONS"])  # ✅ Fixed: DELETE was blocked by CORS
+CORS(app, methods=["GET", "POST", "DELETE", "OPTIONS"])
 
 RESULTS_FILE = r"C:\project-root\src\results.jsonl"
 
@@ -27,13 +27,15 @@ def get_results():
     return jsonify(results)
 
 @app.delete("/results")
-def reset_results():  # ✅ Fixed: was async def, which causes 500 in plain Flask
-    """Deletes results.jsonl so the pipeline starts fresh on next run."""
+def reset_results():
     try:
-        os.remove(RESULTS_FILE)  # ✅ Fixed: was hardcoded "results.jsonl" (wrong path)
+        os.remove(RESULTS_FILE)
     except FileNotFoundError:
         pass
-    return jsonify({"status": "reset"})  # ✅ Fixed: Flask requires jsonify, not a plain dict
+    # ✅ Create a fresh empty file immediately so pipeline resume logic
+    #    sees index 0 and starts from scratch instead of appending
+    open(RESULTS_FILE, 'w').close()
+    return jsonify({"status": "reset"})
 
 @app.route("/status")
 def get_status():
