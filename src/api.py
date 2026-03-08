@@ -96,6 +96,7 @@ def post_review():
     response = insert_review(data)
     return jsonify(response)
 
+# Small chhange
 @app.route("/reviews", methods=["POST"])
 def post_reviews():
     try:
